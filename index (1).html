@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rohit Singh — ML Engineer & Interpretability</title>
+<!-- TODO: replace singhro2206 below (and in the GitHub links) with your real GitHub handle -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F4F7; --surface:#FFFFFF; --ink:#14161B; --muted:#656B76; --faint:#9AA0AB;
+    --line:#E4E6EB; --line-strong:#D2D6DD;
+    --mem:#E5484D;        /* parametric memory  */
+    --ret:#3A56D4;        /* retrieved context  */
+    --mem-soft:#FCEBEC; --ret-soft:#EBEFFB;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;font-size:16.5px}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--ret);color:#fff}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500}
+
+  /* ---------- top bar ---------- */
+  header.bar{position:sticky;top:0;z-index:50;background:rgba(243,244,247,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{font-family:var(--mono);font-weight:600;font-size:.9rem;letter-spacing:.02em}
+  .brand .dot{color:var(--mem)}
+  nav.links{display:flex;gap:26px}
+  nav.links a{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;color:var(--muted);transition:color .18s}
+  nav.links a:hover{color:var(--ink)}
+  @media(max-width:680px){nav.links{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:74px 0 56px;border-bottom:1px solid var(--line)}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:38px}}
+  .hero h1{font-family:var(--display);font-weight:600;font-size:clamp(2.5rem,6.2vw,4.5rem);line-height:1.02;letter-spacing:-.02em;margin:.5rem 0 .9rem}
+  .hero .lede{font-size:1.12rem;color:#33373F;max-width:30ch}
+  .hero .lede b{font-weight:600;color:var(--ink)}
+  .hero .role{font-family:var(--mono);font-size:.82rem;color:var(--ink);letter-spacing:.02em;margin-top:1.4rem;display:flex;flex-wrap:wrap;gap:8px}
+  .hero .role span{border:1px solid var(--line-strong);border-radius:100px;padding:5px 12px;background:var(--surface)}
+  .cta-row{display:flex;gap:12px;margin-top:1.9rem;flex-wrap:wrap}
+  .btn{font-family:var(--mono);font-size:.82rem;font-weight:500;padding:11px 18px;border-radius:8px;border:1px solid var(--ink);transition:transform .15s,box-shadow .15s;display:inline-flex;gap:8px;align-items:center}
+  .btn.solid{background:var(--ink);color:#fff}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.solid:hover{box-shadow:0 8px 22px -10px rgba(20,22,27,.6)}
+
+  /* ---------- the signature: knowledge-conflict readout ---------- */
+  .probe{background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:22px 22px 18px;box-shadow:0 24px 50px -34px rgba(20,22,27,.32)}
+  .probe .cap{display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--line-strong);padding-bottom:11px;margin-bottom:16px}
+  .probe .cap .t{font-family:var(--mono);font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+  .probe .cap .led{font-family:var(--mono);font-size:.64rem;color:var(--faint);display:flex;align-items:center;gap:6px}
+  .probe .cap .led::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ret);box-shadow:0 0 0 0 var(--ret);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(58,86,212,.5)}70%{box-shadow:0 0 0 7px rgba(58,86,212,0)}100%{box-shadow:0 0 0 0 rgba(58,86,212,0)}}
+  .prompt{font-family:var(--mono);font-size:.86rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:18px}
+  .prompt .q{color:var(--muted)}
+  .prompt .blank{color:var(--ret);font-weight:600}
+  .paths{display:grid;gap:11px}
+  .path{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;font-family:var(--mono);font-size:.78rem}
+  .path .src{color:var(--muted);font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+  .track{position:relative;height:2px;background:var(--line-strong);border-radius:2px;overflow:hidden}
+  .track i{position:absolute;top:-3px;left:0;width:8px;height:8px;border-radius:50%}
+  .tok{border-radius:6px;padding:5px 11px;font-weight:600;font-size:.8rem;white-space:nowrap}
+  .path.mem .tok{background:var(--mem-soft);color:var(--mem)}
+  .path.mem .track i{background:var(--mem)}
+  .path.ret .tok{background:var(--ret-soft);color:var(--ret)}
+  .path.ret .track i{background:var(--ret)}
+  .verdict{margin-top:17px;border-top:1px dashed var(--line-strong);padding-top:13px;font-family:var(--mono);font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .verdict b{color:var(--ink);font-weight:600}
+  .sweep{animation:sweep 3.4s ease-in-out infinite}
+  @keyframes sweep{0%{left:0}45%{left:calc(100% - 8px)}55%{left:calc(100% - 8px)}100%{left:0}}
+
+  /* ---------- section scaffolding ---------- */
+  section{padding:66px 0;border-bottom:1px solid var(--line)}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:34px}
+  .sec-head .no{font-family:var(--mono);font-size:.74rem;color:var(--mem);font-weight:600}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.01em}
+  .sec-head .rule{flex:1;height:1px;background:var(--line);align-self:center}
+
+  .about p{font-size:1.18rem;line-height:1.55;max-width:64ch;color:#2C3038}
+  .about p+p{margin-top:1.1rem}
+  .about b{font-weight:600}
+
+  /* ---------- projects ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative}
+  .card:hover{transform:translateY(-3px);border-color:var(--line-strong);box-shadow:0 18px 36px -26px rgba(20,22,27,.3)}
+  .card.feature{grid-column:1 / -1;border-color:var(--line-strong)}
+  .card .ref{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+  .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;padding:3px 9px;border-radius:100px;text-transform:uppercase;font-weight:600}
+  .tag.mem{background:var(--mem-soft);color:var(--mem)} .tag.ret{background:var(--ret-soft);color:var(--ret)}
+  .tag.flat{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .card h3{font-family:var(--display);font-weight:600;font-size:1.16rem;margin-bottom:.5rem;letter-spacing:-.01em}
+  .card p{font-size:.96rem;color:#3A3E47}
+  .card .stack{margin-top:14px;font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.02em}
+  .card.feature h3{font-size:1.45rem}
+  .metric{font-family:var(--mono);font-weight:600;color:var(--ret)}
+
+  /* ---------- experience timeline ---------- */
+  .xp{display:grid;gap:0}
+  .job{display:grid;grid-template-columns:148px 1fr;gap:26px;padding:22px 0;border-top:1px solid var(--line)}
+  .job:first-child{border-top:none}
+  @media(max-width:620px){.job{grid-template-columns:1fr;gap:6px}}
+  .job .when{font-family:var(--mono);font-size:.74rem;color:var(--muted);padding-top:3px}
+  .job h4{font-family:var(--display);font-weight:600;font-size:1.08rem}
+  .job .co{font-family:var(--mono);font-size:.76rem;color:var(--ret);margin:2px 0 9px}
+  .job ul{list-style:none}
+  .job li{position:relative;padding-left:18px;font-size:.95rem;color:#3A3E47;margin-bottom:5px}
+  .job li::before{content:"";position:absolute;left:0;top:.66em;width:5px;height:5px;border-radius:50%;background:var(--line-strong)}
+
+  /* ---------- skills ---------- */
+  .skills{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:620px){.skills{grid-template-columns:1fr}}
+  .skill{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .skill .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mem);font-weight:600;margin-bottom:9px}
+  .skill .v{font-size:.93rem;color:#2C3038}
+
+  /* ---------- education ---------- */
+  .edu{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.edu{grid-template-columns:1fr}}
+  .edu .e{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--surface)}
+  .edu .deg{font-family:var(--display);font-weight:600;font-size:1.04rem;margin-bottom:3px}
+  .edu .inst{color:var(--muted);font-size:.92rem}
+  .edu .meta{font-family:var(--mono);font-size:.72rem;color:var(--ret);margin-top:8px}
+
+  /* ---------- contact / footer ---------- */
+  .contact{text-align:center;padding:84px 0}
+  .contact .eyebrow{margin-bottom:14px}
+  .contact h2{font-family:var(--display);font-weight:600;font-size:clamp(1.8rem,4.6vw,2.9rem);letter-spacing:-.02em;margin-bottom:10px}
+  .contact p{color:var(--muted);margin-bottom:26px}
+  .contact .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  footer{padding:26px 0;border-top:1px solid var(--line)}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.72rem;color:var(--faint);flex-wrap:wrap;gap:8px}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">rohit_singh<span class="dot">.</span></div>
+    <nav class="links">
+      <a href="#work">work</a>
+      <a href="#experience">experience</a>
+      <a href="#skills">skills</a>
+      <a href="#contact">contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" style="border-bottom:1px solid var(--line)">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Mechanistic interpretability · RAG · ML engineering</div>
+      <h1>Rohit Singh</h1>
+      <p class="lede">I build and probe ML systems — and I study <b>where models get their answers from.</b> Seven years in production data engineering, now researching how LLMs reason.</p>
+      <div class="role">
+        <span>Python · 7+ yrs</span>
+        <span>LLM evaluation</span>
+        <span>MSc Data Science & AI</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn solid" href="#work">View work</a>
+        <a class="btn ghost" href="https://github.com/singhro2206" target="_blank" rel="noopener">GitHub ↗</a>
+        <a class="btn ghost" href="https://www.linkedin.com/in/rohit-singh-849844140/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </div>
+    </div>
+
+    <!-- signature element: a live "knowledge conflict" readout -->
+    <div class="probe" aria-label="Causal tracing experiment: does the model answer from memory or from retrieved context?">
+      <div class="cap">
+        <div class="t">Causal trace · knowledge conflict</div>
+        <div class="led">probing</div>
+      </div>
+      <div class="prompt"><span class="q">prompt →</span> "The capital of France is <span class="blank">___</span>"</div>
+      <div class="paths">
+        <div class="path mem">
+          <div class="src">parametric<br>memory</div>
+          <div class="track"><i class="sweep"></i></div>
+          <div class="tok">Paris</div>
+        </div>
+        <div class="path ret">
+          <div class="src">retrieved<br>context</div>
+          <div class="track"><i class="sweep" style="animation-delay:.6s"></i></div>
+          <div class="tok">London</div>
+        </div>
+      </div>
+      <div class="verdict">
+        <span>which signal wins?</span>
+        <span>metric: <b>faithfulness</b> · localised by layer</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="sec-head"><span class="no">01</span><h2>About</h2><span class="rule"></span></div>
+    <p>I spent <b>seven years</b> building large-scale data systems in banking and payments — high-volume PySpark pipelines, validation frameworks, the kind of work where a silent data error costs real money. That made me good at one thing in particular: <b>finding where things quietly go wrong.</b></p>
+    <p>Now I'm moving that instinct into AI. Through an MSc in Data Science & AI at the University of Liverpool, my focus is <b>mechanistic interpretability and RAG faithfulness</b> — evaluating how language models reason, and whether they ground their answers in retrieved evidence or fall back on what they memorised. It's evaluation work at the level of the model's internals.</p>
+  </div>
+</section>
+
+<!-- ============ WORK ============ -->
+<section id="work">
+  <div class="wrap">
+    <div class="sec-head"><span class="no">02</span><h2>Selected work</h2><span class="rule"></span></div>
+    <div class="grid2">
+
+      <article class="card feature">
+        <div class="ref"><span>Dissertation · in progress</span><span class="tag ret">RAG faithfulness</span></div>
+        <h3>Does the model trust its memory or the document?</h3>
+        <p>Using <b>causal tracing</b> on GPT-2 XL to resolve knowledge conflicts: feed the model a fact it knows, inject a contradicting retrieved document, and trace through the network to find <i>where</i> it decides to ground in the source vs. fall back on parametric memory. The evaluation criterion is faithfulness — and activation patching localises the layers where grounding succeeds or fails.</p>
+        <div class="stack">Python · PyTorch · activation patching · causal tracing · interpretability</div>
+      </article>
+
+      <article class="card">
+        <div class="ref"><span>Project</span><span class="tag mem">LLM evaluation</span></div>
+        <h3>Analytical task evaluation</h3>
+        <p>Designed multi-step reasoning tasks to test LLM capability, then scored outputs against <b>objective rubrics</b> to surface reasoning and correctness failure patterns.</p>
+        <div class="stack">Python · prompt engineering · rubric design</div>
+      </article>
+
+      <article class="card">
+        <div class="ref"><span>Coursework</span><span class="tag flat">statistics</span></div>
+        <h3>EDA & regression modelling</h3>
+        <p>Uncovered non-linear structure across three datasets via systematic EDA and from-scratch regression, achieving a quadratic fit of <span class="metric">R² = 0.97</span>; selected models by comparing residual structure, not library defaults.</p>
+        <div class="stack">Python · NumPy · pandas · Matplotlib</div>
+      </article>
+
+      <article class="card">
+        <div class="ref"><span>Literature review</span><span class="tag flat">interpretability</span></div>
+        <h3>Interpretability techniques for LLMs</h3>
+        <p>Co-authored a review of mechanistic interpretability methods — including causal tracing for locating factual knowledge inside transformer models.</p>
+        <div class="stack">Academic · survey · transformers</div>
+      </article>
+
+      <article class="card">
+        <div class="ref"><span>Project</span><span class="tag flat">geospatial</span></div>
+        <h3>Air quality & school exposure</h3>
+        <p>Built geospatial pipelines and interactive maps to identify high-risk pollution zones around schools from environmental and location data.</p>
+        <div class="stack">Python · GeoPandas · Folium</div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXPERIENCE ============ -->
+<section id="experience">
+  <div class="wrap">
+    <div class="sec-head"><span class="no">03</span><h2>Experience</h2><span class="rule"></span></div>
+    <div class="xp">
+      <div class="job">
+        <div class="when">Sep 2024 — Jan 2026</div>
+        <div>
+          <h4>Data Engineer <span style="color:var(--faint);font-weight:400">(Client: VISA)</span></h4>
+          <div class="co">Wipro</div>
+          <ul>
+            <li>Improved system performance ~20% by profiling and resolving bottlenecks in high-volume financial PySpark pipelines.</li>
+            <li>Built Python validation frameworks ensuring accuracy of sensitive payment datasets across analytics and ML workflows.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="job">
+        <div class="when">Jan 2023 — Aug 2024</div>
+        <div>
+          <h4>Senior Big Data Developer</h4>
+          <div class="co">krtrimaIQ</div>
+          <ul>
+            <li>Standardised analytical pipelines and cut maintenance overhead by migrating legacy R systems to Python.</li>
+            <li>Built automated ingestion and KPI-tracking systems enabling real-time business insight.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="job">
+        <div class="when">Oct 2018 — Dec 2022</div>
+        <div>
+          <h4>System Engineer <span style="color:var(--faint);font-weight:400">(Data Engineer)</span></h4>
+          <div class="co">Tata Consultancy Services</div>
+          <ul>
+            <li>Built ETL pipelines on the Hadoop ecosystem for high-volume banking analytics.</li>
+            <li>Reduced manual release effort with automation, validation tooling, and CI/CD-based deployment.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SKILLS ============ -->
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-head"><span class="no">04</span><h2>Skills</h2><span class="rule"></span></div>
+    <div class="skills">
+      <div class="skill"><div class="k">Languages</div><div class="v">Python (expert), SQL, Bash</div></div>
+      <div class="skill"><div class="k">AI / ML</div><div class="v">LLM evaluation, interpretability, causal tracing, RAG, prompt engineering, scikit-learn, pandas, NumPy</div></div>
+      <div class="skill"><div class="k">Evaluation & quality</div><div class="v">Rubric design, code review, validation frameworks, experimental design, statistics</div></div>
+      <div class="skill"><div class="k">Data & tooling</div><div class="v">Spark, PySpark, Hadoop, Kafka, Airflow, AWS, Azure, Git / GitHub, CI/CD</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDUCATION ============ -->
+<section id="education">
+  <div class="wrap">
+    <div class="sec-head"><span class="no">05</span><h2>Education</h2><span class="rule"></span></div>
+    <div class="edu">
+      <div class="e">
+        <div class="deg">MSc Data Science & Artificial Intelligence</div>
+        <div class="inst">University of Liverpool</div>
+        <div class="meta">2026 — 2027</div>
+      </div>
+      <div class="e">
+        <div class="deg">B.Tech Electrical & Electronics Engineering</div>
+        <div class="inst">Manipal Institute of Technology</div>
+        <div class="meta">2014 — 2018 · CGPA 7.46 / 10</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact" style="border-bottom:none">
+  <div class="wrap">
+    <div class="eyebrow">Open to ML engineer & AI evaluation roles</div>
+    <h2>Let's talk.</h2>
+    <p>Remote-friendly · based in Liverpool, UK</p>
+    <div class="row">
+      <a class="btn solid" href="mailto:rohitsingh22june1995@gmail.com">Email me</a>
+      <a class="btn ghost" href="https://www.linkedin.com/in/rohit-singh-849844140/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="btn ghost" href="https://github.com/singhro2206" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Rohit Singh</span>
+    <span>built from first principles</span>
+  </div>
+</footer>
+
+<script>
+  // scroll reveal
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('section .wrap > *').forEach(el=>{ el.classList.add('reveal'); io.observe(el); });
+</script>
+</body>
+</html>
